@@ -4,7 +4,7 @@ var router = express.Router();
 
 router.use('/province', require('./province'));
 router.use('/church', require('./church'));
-
+router.use('/registeruser', require('./userregister'));
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
