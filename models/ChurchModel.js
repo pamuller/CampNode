@@ -20,24 +20,26 @@ function Church() {
 		  var obj=req.body;
 		 //obj.province={'@rid':obj.province};
 		  
-			db.query('insert into church (churchname,province,address,churchcontactno) values ('+obj.churchname+','+obj.province+','+obj.address+','+obj.churchcontactno+')'
+			db.query('insert into church (churchname,province,address,churchcontactno) values (\''+obj.churchname+'\','+obj.province['@rid']+',\''+obj.address+'\',\''+obj.churchcontactno+'\')'
 					 ).then(function (church){
 					  console.log(church); //an Array of records inserted
-					  
-					  db.query('insert into person (firstname,lastname,contactno,email,password,name,status) values (\''+obj.youthleaderName+'\',\''+obj.youthleaderSurname+'\',\''+obj.youthleadercell+'\',\''+obj.youthleaderemail+'\',\'password\',\''+obj.youthleaderemail+'\',\'false\')'
-						 ).then(function (people){
-						 
-							 db.query('create edge youthpaster from '+people[0]['@rid']  +' to '+ church[0]['@rid']
-							 ).then(function (response){
-							  console.log(response); //an Array of records inserted
-							});
-							 
-							 
-							 
-						});
-					  
-					  
-			
+					  if (obj.youthleaderName != null)
+						  {
+							  db.query('insert into person (firstname,lastname,contactno,email,password,name,status) values (\''+obj.youthleaderName+'\',\''+obj.youthleaderSurname+'\',\''+obj.youthleadercell+'\',\''+obj.youthleaderemail+'\',\'password\',\''+obj.youthleaderemail+'\',\'false\')'
+								 ).then(function (people){
+								 
+									 db.query('create edge youthpaster from '+people[0]['@rid']  +' to '+ church[0]['@rid']
+									 ).then(function (response){
+									  console.log(response); //an Array of records inserted
+									  	res.send(church);
+									}); 
+								});
+						  }else
+							  {
+							  //get full church info from db
+							  res.send(church);
+							  }
+				 			
 					});
 		  
 		  
@@ -67,12 +69,13 @@ function Church() {
 			
 		  console.log("reg.body:"+req.body);
 			var idd = req.body['@rid'];
-			delete req.body['@rid'];
+			console.log("idd:"+idd);
+			//delete req.body['@rid'];
 			//db.query('insert into church (churchname, address, youthleaderName,province,youthleaderemail,youthleadercell,churchcontactno,youthleaderSurname) values (:name, :password, :status
-	
-			
-			
-			db.update('Church').set(req.body).where('@rid = "'+idd+'"').scalar()
+			var obj=req.body;
+			var updateString ='churchname = \''+obj.churchname+'\', address = \''+obj.address+'\', churchcontactno = \''+obj.churchcontactno+'\' ,province = '+obj.province['@rid'];
+			console.log("updateString:"+updateString);
+			db.update('Church').set(updateString).where('@rid = "'+idd+'"').scalar()
 				.then(function (total) {
 				  console.log('updated', total, 'users');
 				  res.send('updated', total, 'users');
@@ -122,16 +125,29 @@ function Church() {
 	  };
 	  
 	  
-	  
-	  this.findall = function(res,req)
+	  this.find = function(res,req)
 	  {		
-		  db.query()
-		  db.select().from('church').all()
+		// db.query('select from church where @rid='+req.params['id'] + ' fetchplan province:1').all()
+		 db.select().from('church').where('province='+req.params['id']).fetch('province:1').all()
 			.then(function (church) {
 			  console.log('active users', church);
 			  res.send(church);
 		  });
 	  };
+	  
+	  
+	  
+	  this.findall = function(res,req)
+	  {		
+		  //db.query('select from church fetchplan *:1' ).all()
+		db.select().from('church').fetch('province:1').all()
+			.then(function (church) {
+			  console.log('active users', church);
+			  res.send(church);
+		  });
+	  };
+	  
+	
 	  
 	  
 	  
